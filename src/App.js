@@ -1,7 +1,7 @@
 import React from 'react';
 import Route from 'react-router-dom/Route';
 import Switch from 'react-router-dom/Switch';
-import manageCampaigns from './pages/manageCampaigns';
+import manageCampaigns from './pages/Managecampaigns';
 import './App.css';
 
 const App = () => (
