@@ -21,7 +21,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const manageCampaigns = () => {
+const Managecampaigns = () => {
   const classes = useStyles();
   return (
     <>
@@ -36,4 +36,4 @@ const manageCampaigns = () => {
   );
 };
 
-export default manageCampaigns;
+export default Managecampaigns;
