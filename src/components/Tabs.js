@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-nested-ternary */
 import React, { useState } from 'react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -20,11 +21,14 @@ import {
   CardMedia,
   TextField,
 } from '@material-ui/core';
-import constants from '../utils/constants/constants';
-import data from '../utils/constants/data';
+import constants from '../utils/constants';
+import data from '../utils/data';
+import {
+  convertDate, formatDate, daysDifference, fetchTimestamp,
+} from '../utils/moment';
 
 const {
-  pricingIconPath, csvIconPath, reportIconPath, months,
+  pricingIconPath, csvIconPath, reportIconPath,
 } = constants;
 
 function TabPanel(props) {
@@ -178,45 +182,25 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const getMonthFromString = (mon) => new Date(Date.parse(`${mon} 1, 2012`)).getMonth() + 1;
-
-function convertDate(date) {
-  // Converting date into required format of month, year , date
-  const date1 = date.split(' ');
-  const day = date1[2];
-  const month = getMonthFromString(date1[0]);
-  const year = date1[1].split(',')[0];
-  return `${year}-${month.length === 2 ? month : `0${month}`}-${day.length === 2 ? day : `0${day}`}`;
-}
-
-function convertOriginalFormat(date) {
-  const date1 = date.split('-');
-  return `${months[parseInt(date1[1], 10) - 1]} ${date1[0]}, ${date1[2]}`;
-}
-
-export default function CampaignList() {
+export default function CampaignList(props) {
+  // data is json hardcoded value in file
   const [myData, setMyData] = useState(data);
+  const { language } = props;
   const classes = useStyles();
   const theme = useTheme();
   const [value, setValue] = useState(0);
   const [currentInfo, setCurrentInfo] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const daysDifference = (date) => {
-    // computing difference between selected and current date
-    const dt2 = new Date(date);
-    const dt1 = new Date();
-    return (
-      Math.floor((
-        Date.UTC(dt2.getFullYear(), dt2.getMonth(), dt2.getDate()) - Date.UTC(dt1.getFullYear(), dt1.getMonth(), dt1.getDate())) / (1000 * 60 * 60 * 24))
-    );
-  };
+  const locale = language('locale');
+  const daysAhead = language('daysAhead');
+  const daysAgo = language('daysAgo');
 
   const handleDateChange = (evt, ind) => {
     const md1 = { ...myData };
     const date = (evt.target.value);
-    const days = daysDifference(date);
-    md1.campaignData[ind].date = convertOriginalFormat(date);
+    const days = daysDifference({ date });
+    md1.campaignData[ind].date = fetchTimestamp({ date });
     if (days < 0) {
       md1.campaignData[ind].status = constants.pastStatus;
     } else if (days > 0) {
@@ -224,7 +208,6 @@ export default function CampaignList() {
     } else {
       md1.campaignData[ind].status = constants.liveStatus;
     }
-    // setting the change in date directly into state
     setMyData(md1);
   };
 
@@ -236,16 +219,17 @@ export default function CampaignList() {
     // Rendering info for each of campaigns, after computation with date difference
     myData.campaignData.map((campaignInfo, index) => {
       if (campaignInfo.status === status) {
-        const defValue = convertDate(campaignInfo.date);
-        const daysGap = daysDifference(defValue);
+        /** ***** converting unix timestamp to an apt date format & compute date difference *** */
+        const dateValue = convertDate({ date: campaignInfo.date });
+        const daysGap = daysDifference({ date: dateValue });
         return (
           <TableRow>
             <TableCell>
               <div className={classes.dateStyle}>
-                {campaignInfo.date}
+                {formatDate({ date: dateValue, locale })}
               </div>
               <div className={classes.subTextStyle}>
-                {daysGap > 0 ? `${daysGap} Days Ahead` : daysGap < 0 ? `${Math.abs(daysGap)} Days Ago` : null}
+                {daysGap > 0 ? `${daysGap} ${daysAhead}` : daysGap < 0 ? `${Math.abs(daysGap)} ${daysAgo}` : null}
               </div>
             </TableCell>
             <TableCell>
@@ -258,7 +242,7 @@ export default function CampaignList() {
                 />
                 <div className={classes.outerTextWrap}>
                   <div className={classes.gameName}>{campaignInfo.name}</div>
-                  <div className={classes.subTextStyle}>{campaignInfo.lang}</div>
+                  <div className={classes.subTextStyle}>{campaignInfo.country}</div>
                 </div>
               </div>
             </TableCell>
@@ -280,7 +264,7 @@ export default function CampaignList() {
                     alt="Icon"
                   />
                 </span>
-                View Pricing
+                {language('viewPricing')}
               </Button>
             </TableCell>
             <TableCell>
@@ -305,14 +289,14 @@ export default function CampaignList() {
                     alt="Icon"
                   />
                 </span>
-                Report
+                {language('report')}
               </Button>
               <span className={classes.calender}>
                 <TextField
                   id="date"
-                  label="Schedule Again"
+                  label={language('scheduleAgain')}
                   type="date"
-                  defaultValue={defValue}
+                  defaultValue={dateValue}
                   onChange={(evt) => { handleDateChange(evt, index); }}
                   InputLabelProps={{
                     shrink: true,
@@ -331,7 +315,7 @@ export default function CampaignList() {
     <TableHead style={{ backgroundColor: '#F1F1F4' }}>
       <TableRow>
         {constants.tableHeadings.map((colName) => (
-          <TableCell classes={{ head: classes.tableHeadStyle }}>{colName}</TableCell>
+          <TableCell classes={{ head: classes.tableHeadStyle }}>{language(colName)}</TableCell>
         ))}
       </TableRow>
     </TableHead>
@@ -361,7 +345,7 @@ export default function CampaignList() {
     const { pricing: { week, month, year } } = currentInfo;
     return [week, month, year].map((pricingValue, index) => (
       <div className={classes.outerPricingStyle}>
-        <span>{constants.timeDurations[index]}</span>
+        <span>{language(constants.timeDurations[index])}</span>
         <span className={classes.pricingValueStyle}>
           {pricingValue}
         </span>
@@ -378,9 +362,9 @@ export default function CampaignList() {
         variant="centered"
         aria-label="full width tabs example"
       >
-        <Tab classes={{ selected: classes.selected }} label="Upcoming" {...a11yProps(0)} />
-        <Tab classes={{ selected: classes.selected }} label="Live" {...a11yProps(1)} />
-        <Tab classes={{ selected: classes.selected }} label="Past" {...a11yProps(2)} />
+        <Tab classes={{ selected: classes.selected }} label={language('upcomingLabelText')} {...a11yProps(0)} />
+        <Tab classes={{ selected: classes.selected }} label={language('liveLabelText')} {...a11yProps(1)} />
+        <Tab classes={{ selected: classes.selected }} label={language('pastLabelText')} {...a11yProps(2)} />
       </Tabs>
       {renderTabs()}
       <Modal
@@ -402,13 +386,13 @@ export default function CampaignList() {
                 {currentInfo.name}
               </Typography>
               <Typography variant="subtitle1" color="textSecondary">
-                {currentInfo.lang}
+                {currentInfo.country}
               </Typography>
             </CardContent>
           </div>
           <CardContent>
             <Typography classes={{ root: classes.pricingStyle }} gutterBottom variant="h5" component="h2">
-              Pricing
+              {language('pricing')}
             </Typography>
             <Typography variant="body2" color="textSecondary" component="p">
               {Object.keys(currentInfo).length !== 0 && renderPricingSlabs()}
@@ -420,7 +404,7 @@ export default function CampaignList() {
               variant="outlined"
               classes={{ outlined: classes.closeButtonStyle }}
             >
-              Close
+              {language('close')}
             </Button>
           </CardContent>
         </Card>

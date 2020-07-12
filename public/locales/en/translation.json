@@ -1,0 +1,21 @@
+{
+    "locale": "en",
+    "campaignActionText": "Manage Campagins",
+    "upcomingLabelText": "upcoming",
+    "liveLabelText": "live",
+    "pastLabelText": "past",
+    "Date": "Date",
+    "Campaigns":"Campaigns", 
+    "View":"View",
+    "Actions": "Actions",
+    "daysAhead": "Days Ahead",
+    "daysAgo": "Days Ago",
+    "viewPricing": "View Pricing",
+    "report": "Report",
+    "scheduleAgain": "Schedule Again",
+    "pricing": "Pricing",
+    "1 Week - 1 Month": "1 Week - 1 Month",
+    "6 Months": "6 Months",
+    "1 Year": "1 Year",
+    "close": "close"
+}
