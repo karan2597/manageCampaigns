@@ -5,7 +5,7 @@ import {
   AppBar, Toolbar, Typography, makeStyles,
 } from '@material-ui/core';
 
-import logo from '../../public/Images/inspect/Front-End/Page 1/logo.png';
+import logo from '../../public/Images/logo.png';
 
 const useStyles = makeStyles(() => ({
   appbarWrapperStyle: {
